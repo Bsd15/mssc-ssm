@@ -44,10 +44,10 @@ class StateMachineConfigTest {
 
         StateMachine<PaymentState, PaymentEvent> stateMachine = factory.getStateMachine(UUID.randomUUID().toString());
         stateMachine.startReactively().subscribe();
-        log.debug("Initial state: {}", stateMachine.getState().toString());
+//        log.debug("Initial state: {}", stateMachine.getState().toString());
         stateMachine.sendEvent(Mono.just(MessageBuilder.withPayload(PaymentEvent.PRE_AUTHORIZE).build())).subscribe();
-        log.debug("state: {}", stateMachine.getState().toString());
+//        log.debug("state: {}", stateMachine.getState().toString());
         stateMachine.sendEvent(Mono.just(MessageBuilder.withPayload(PaymentEvent.PRE_AUTH_DECLINED).build())).subscribe();
-        log.debug("state: {}", stateMachine.getState().toString());
+//        log.debug("state: {}", stateMachine.getState().toString());
     }
 }
