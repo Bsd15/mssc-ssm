@@ -13,6 +13,7 @@ import org.springframework.statemachine.config.EnumStateMachineConfigurerAdapter
 import org.springframework.statemachine.config.builders.StateMachineConfigurationConfigurer;
 import org.springframework.statemachine.config.builders.StateMachineStateConfigurer;
 import org.springframework.statemachine.config.builders.StateMachineTransitionConfigurer;
+import org.springframework.statemachine.guard.Guard;
 import org.springframework.statemachine.listener.StateMachineListenerAdapter;
 import org.springframework.statemachine.state.State;
 import reactor.core.publisher.Mono;
@@ -38,6 +39,7 @@ public class StateMachineConfig extends EnumStateMachineConfigurerAdapter<Paymen
     @Override
     public void configure(StateMachineTransitionConfigurer<PaymentState, PaymentEvent> transitions) throws Exception {
         transitions.withExternal().source(PaymentState.NEW).target(PaymentState.NEW).event(PaymentEvent.PRE_AUTHORIZE)
+                .guard(paymentIdGuard())
                 .action(preAuthAction())
                 .and()
                 .withExternal().source(PaymentState.NEW).target(PaymentState.PRE_AUTH).event(PaymentEvent.PRE_AUTH_APPROVED)
@@ -64,7 +66,11 @@ public class StateMachineConfig extends EnumStateMachineConfigurerAdapter<Paymen
         config.withConfiguration().listener(adapter);
     }
 
-    public Action<PaymentState, PaymentEvent> preAuthAction() {
+    private Guard<PaymentState, PaymentEvent> paymentIdGuard() {
+        return context -> context.getMessageHeader(PaymentServiceImpl.PAYMENT_ID_HEADER) != null;
+    }
+
+    private Action<PaymentState, PaymentEvent> preAuthAction() {
         return context -> {
             Message<PaymentEvent> message = null;
             if (new Random().nextInt(10) < 8) {
@@ -81,7 +87,7 @@ public class StateMachineConfig extends EnumStateMachineConfigurerAdapter<Paymen
         };
     }
 
-    public Action<PaymentState, PaymentEvent> authAction() {
+    private Action<PaymentState, PaymentEvent> authAction() {
         return context -> {
             Message<PaymentEvent> message = null;
             if (new Random().nextInt(10) < 8) {
